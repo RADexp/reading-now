@@ -139,31 +139,53 @@ function createRatingElement(ratingValue) {
     return null;
   }
 
-  const normalizedRating = Math.max(
-    0,
-    Math.min(5, Math.round(numericRating))
-  );
+  const roundedRating = Math.round(numericRating * 4) / 4;
+  const normalizedRating = Math.max(0, Math.min(5, roundedRating));
 
   if (normalizedRating === 0) {
     return null;
   }
+
+  const fractionalPart = normalizedRating - Math.trunc(normalizedRating);
+  let fractionDigits = 0;
+  if (fractionalPart === 0.5) {
+    fractionDigits = 1;
+  } else if (fractionalPart !== 0) {
+    fractionDigits = 2;
+  }
+
+  const localizedRating = normalizedRating.toLocaleString("pl-PL", {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+  });
 
   const ratingElement = document.createElement("div");
   ratingElement.className = "book-rating";
   ratingElement.setAttribute("role", "img");
   ratingElement.setAttribute(
     "aria-label",
-    `Ocena: ${normalizedRating} na 5`
+    `Ocena: ${localizedRating} na 5`
   );
+  ratingElement.setAttribute("title", `Ocena: ${localizedRating} / 5`);
 
   for (let i = 1; i <= 5; i += 1) {
     const star = document.createElement("span");
     star.className = "rating-star";
-    star.textContent = i <= normalizedRating ? "★" : "☆";
     star.setAttribute("aria-hidden", "true");
-    if (i <= normalizedRating) {
-      star.classList.add("is-filled");
-    }
+
+    const baseStar = document.createElement("span");
+    baseStar.className = "rating-star-base";
+    baseStar.textContent = "☆";
+
+    const fillStar = document.createElement("span");
+    fillStar.className = "rating-star-fill";
+    fillStar.textContent = "★";
+
+    const starFill = Math.max(0, Math.min(1, normalizedRating - (i - 1)));
+    const fillPercent = Math.round(starFill * 100);
+    fillStar.style.setProperty("--star-fill", `${fillPercent}%`);
+
+    star.append(baseStar, fillStar);
     ratingElement.appendChild(star);
   }
 
