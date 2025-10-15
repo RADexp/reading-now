@@ -278,49 +278,148 @@ function createBookLinks(polishLink, englishLink) {
   return container;
 }
 
-function createFormatElement(formatValue) {
+function getFormatDisplay(formatValue) {
   if (!formatValue) {
     return null;
   }
 
-  const normalized = normalizeText(formatValue);
+  const displayText = formatValue.toString().trim();
+  if (!displayText) {
+    return null;
+  }
+
+  const normalized = normalizeText(displayText);
   if (!normalized) {
     return null;
   }
 
-  let emoji = "";
+  let icon = "";
   if (normalized.includes("audio")) {
-    emoji = "🎧";
+    icon = "🎧";
   } else if (normalized.includes("ebook") || normalized.includes("e-book")) {
-    emoji = "📱";
+    icon = "📱";
   } else if (
     normalized.includes("papier") ||
     normalized.includes("druk") ||
     normalized.includes("paper")
   ) {
-    emoji = "📕";
+    icon = "📕";
   }
 
-  if (!emoji) {
+  if (!icon) {
     return null;
   }
 
-  const formatSpan = document.createElement("span");
-  formatSpan.className = "book-meta-format";
-  const displayText = formatValue.trim();
-  formatSpan.setAttribute("aria-label", `Format: ${displayText}`);
+  return {
+    icon,
+    label: displayText,
+  };
+}
 
-  const iconSpan = document.createElement("span");
-  iconSpan.className = "book-meta-format-icon";
-  iconSpan.textContent = emoji;
+function getLanguageDisplay(languageValue) {
+  if (!languageValue) {
+    return null;
+  }
 
-  const labelSpan = document.createElement("span");
-  labelSpan.className = "book-meta-format-label";
-  labelSpan.textContent = displayText;
+  const displayText = languageValue.toString().trim();
+  if (!displayText) {
+    return null;
+  }
 
-  formatSpan.append(iconSpan, labelSpan);
+  const normalized = normalizeText(displayText);
+  if (!normalized) {
+    return null;
+  }
 
-  return formatSpan;
+  let flag = "";
+  let readable = displayText;
+
+  if (normalized.includes("pol")) {
+    flag = "🇵🇱";
+    readable = "polski";
+  } else if (normalized.includes("ang") || normalized.includes("eng")) {
+    flag = "🇬🇧";
+    readable = "angielski";
+  } else if (normalized.includes("hiszp") || normalized.includes("span")) {
+    flag = "🇪🇸";
+    readable = "hiszpański";
+  } else if (normalized.includes("niem") || normalized.includes("ger")) {
+    flag = "🇩🇪";
+    readable = "niemiecki";
+  } else if (normalized.includes("franc") || normalized.includes("fr")) {
+    flag = "🇫🇷";
+    readable = "francuski";
+  }
+
+  return {
+    flag,
+    label: readable,
+    originalLabel: displayText,
+  };
+}
+
+function createConsumptionElement(formatValue, languageValue) {
+  const formatInfo = getFormatDisplay(formatValue);
+  const languageInfo = getLanguageDisplay(languageValue);
+
+  if (!formatInfo && !languageInfo) {
+    return null;
+  }
+
+  const container = document.createElement("span");
+  container.className = "book-meta-consumption";
+
+  const ariaParts = [];
+
+  if (formatInfo) {
+    const formatSpan = document.createElement("span");
+    formatSpan.className = "book-meta-consumption-format";
+
+    const iconSpan = document.createElement("span");
+    iconSpan.className = "book-meta-consumption-icon";
+    iconSpan.textContent = formatInfo.icon;
+
+    const labelSpan = document.createElement("span");
+    labelSpan.className = "book-meta-consumption-label";
+    labelSpan.textContent = formatInfo.label;
+
+    formatSpan.append(iconSpan, labelSpan);
+    container.appendChild(formatSpan);
+    ariaParts.push(`format: ${formatInfo.label}`);
+  }
+
+  if (languageInfo) {
+    const languageSpan = document.createElement("span");
+    languageSpan.className = "book-meta-language";
+    languageSpan.setAttribute(
+      "aria-label",
+      `Język: ${languageInfo.label}`
+    );
+
+    if (languageInfo.flag) {
+      const flagSpan = document.createElement("span");
+      flagSpan.className = "book-meta-language-flag";
+      flagSpan.textContent = languageInfo.flag;
+      flagSpan.setAttribute("aria-hidden", "true");
+      languageSpan.appendChild(flagSpan);
+    }
+
+    const labelSpan = document.createElement("span");
+    labelSpan.className = "book-meta-language-label";
+    labelSpan.textContent = languageInfo.flag
+      ? languageInfo.label
+      : languageInfo.originalLabel;
+    languageSpan.appendChild(labelSpan);
+
+    container.appendChild(languageSpan);
+    ariaParts.push(`język: ${languageInfo.label}`);
+  }
+
+  if (ariaParts.length > 0) {
+    container.setAttribute("aria-label", `Sposób lektury – ${ariaParts.join(", ")}`);
+  }
+
+  return container;
 }
 
 function getCellValue(row, index) {
@@ -338,7 +437,17 @@ function getCellValue(row, index) {
 }
 
 function createBookCard(
-  { title, author, genre, rating, coverUrl, polishLink, englishLink, format },
+  {
+    title,
+    author,
+    genre,
+    rating,
+    coverUrl,
+    polishLink,
+    englishLink,
+    format,
+    language,
+  },
   { variant } = {}
 ) {
   const item = document.createElement("li");
@@ -385,9 +494,9 @@ function createBookCard(
     metaElement.appendChild(authorSpan);
   }
 
-  const formatElement = createFormatElement(format);
-  if (formatElement) {
-    metaElement.appendChild(formatElement);
+  const consumptionElement = createConsumptionElement(format, language);
+  if (consumptionElement) {
+    metaElement.appendChild(consumptionElement);
   }
 
   const linksElement = createBookLinks(polishLink, englishLink);
@@ -462,6 +571,7 @@ async function loadBooks() {
       const coverUrl = getCellValue(row, columnIndexes.coverUrl);
       const rating = getCellValue(row, columnIndexes.rating);
       const format = getCellValue(row, columnIndexes.format);
+      const language = getCellValue(row, columnIndexes.language);
       const polishLink = getCellValue(row, columnIndexes.polishLink);
       const englishLink = getCellValue(row, columnIndexes.englishLink);
 
@@ -480,6 +590,7 @@ async function loadBooks() {
           polishLink,
           englishLink,
           format,
+          language,
         },
         { variant: bucket }
       );
