@@ -213,69 +213,31 @@ function sanitizeExternalLink(value) {
   }
 }
 
-function createBookLink(urlValue, { label, flagEmoji }) {
-  const sanitizedUrl = sanitizeExternalLink(urlValue);
-  if (!sanitizedUrl) {
+function getPreferredBookLink({ languageValue, polishLink, englishLink }) {
+  const sanitizedPolishLink = sanitizeExternalLink(polishLink);
+  const sanitizedEnglishLink = sanitizeExternalLink(englishLink);
+
+  if (!sanitizedPolishLink && !sanitizedEnglishLink) {
     return null;
   }
 
-  const linkElement = document.createElement("a");
-  linkElement.className = "book-meta-link";
-  linkElement.href = sanitizedUrl;
-  linkElement.target = "_blank";
-  linkElement.rel = "noopener noreferrer";
-  linkElement.setAttribute(
-    "aria-label",
-    `${label} (otwiera się w nowej karcie)`
-  );
-  linkElement.title = `${label} (otwiera się w nowej karcie)`;
+  const normalizedLanguage = normalizeText(languageValue);
+  const prefersEnglish = normalizedLanguage.includes("ang") || normalizedLanguage.includes("eng");
+  const prefersPolish = normalizedLanguage.includes("pol");
 
-  if (flagEmoji) {
-    const flagSpan = document.createElement("span");
-    flagSpan.className = "book-meta-link-flag";
-    flagSpan.textContent = flagEmoji;
-    flagSpan.setAttribute("aria-hidden", "true");
-    linkElement.appendChild(flagSpan);
+  if (prefersEnglish && sanitizedEnglishLink) {
+    return sanitizedEnglishLink;
   }
 
-  const labelSpan = document.createElement("span");
-  labelSpan.className = "book-meta-link-label";
-  labelSpan.textContent = label;
-  linkElement.appendChild(labelSpan);
-
-  return linkElement;
-}
-
-function createBookLinks(polishLink, englishLink) {
-  const links = [];
-
-  const polishLinkElement = createBookLink(polishLink, {
-    label: "Książka po polsku",
-    flagEmoji: "🇵🇱",
-  });
-  if (polishLinkElement) {
-    links.push(polishLinkElement);
+  if (prefersPolish && sanitizedPolishLink) {
+    return sanitizedPolishLink;
   }
 
-  const englishLinkElement = createBookLink(englishLink, {
-    label: "Książka po angielsku",
-    flagEmoji: "🇬🇧",
-  });
-  if (englishLinkElement) {
-    links.push(englishLinkElement);
+  if (sanitizedPolishLink) {
+    return sanitizedPolishLink;
   }
 
-  if (links.length === 0) {
-    return null;
-  }
-
-  const container = document.createElement("span");
-  container.className = "book-meta-links";
-  links.forEach((linkElement) => {
-    container.appendChild(linkElement);
-  });
-
-  return container;
+  return sanitizedEnglishLink;
 }
 
 function getFormatDisplay(formatValue) {
@@ -481,7 +443,30 @@ function createBookCard(
 
   const titleElement = document.createElement("h3");
   titleElement.className = "book-title";
-  titleElement.textContent = title || "(bez tytułu)";
+  const bookTitle = title || "(bez tytułu)";
+  const preferredLink = getPreferredBookLink({
+    languageValue: language,
+    polishLink,
+    englishLink,
+  });
+
+  if (preferredLink) {
+    const titleLink = document.createElement("a");
+    titleLink.className = "book-title-link";
+    titleLink.href = preferredLink;
+    titleLink.target = "_blank";
+    titleLink.rel = "noopener noreferrer";
+    titleLink.textContent = bookTitle;
+    titleLink.setAttribute(
+      "aria-label",
+      `${bookTitle} – otwiera się w nowej karcie`
+    );
+    titleLink.title = `${bookTitle} (otwiera się w nowej karcie)`;
+    titleElement.appendChild(titleLink);
+  } else {
+    titleElement.textContent = bookTitle;
+  }
+
   contentElement.appendChild(titleElement);
 
   const metaElement = document.createElement("p");
@@ -497,11 +482,6 @@ function createBookCard(
   const consumptionElement = createConsumptionElement(format, language);
   if (consumptionElement) {
     metaElement.appendChild(consumptionElement);
-  }
-
-  const linksElement = createBookLinks(polishLink, englishLink);
-  if (linksElement) {
-    metaElement.appendChild(linksElement);
   }
 
   if (genre) {
