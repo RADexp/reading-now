@@ -13,14 +13,14 @@
     />
     <link rel="stylesheet" href="../styles.css" />
   </head>
-  <body>
+  <body data-page="about">
     <header class="site-header">
       <div class="site-header-top">
         <div class="logo-container">
           <a
             class="logo-link"
             href="../"
-            aria-label="Strona główna Radek czyta"
+            data-i18n-attrs="aria-label:common.logoLinkAria"
           >
             <img
               src="../radek-czyta.png"
@@ -29,53 +29,70 @@
               alt="Ilustracja logo Radek czyta"
               class="logo-image"
               loading="lazy"
+              data-i18n-attrs="alt:common.logoAlt"
             />
           </a>
           <div class="logo-text-group">
-            <a class="logo" href="../">Radek czyta</a>
-            <p class="tagline">
+            <a class="logo" href="../" data-i18n="common.logoText">Radek czyta</a>
+            <p class="tagline" data-i18n="common.tagline">
               Lista książek, które właśnie pochłaniam, czekają w kolejce lub już są na
               półce przeczytane.
             </p>
           </div>
         </div>
-        <a class="site-nav-link" href="../">Lista książek</a>
+        <nav class="site-nav">
+          <a class="site-nav-link" href="../" data-i18n="navigation.books">Lista książek</a>
+          <button
+            type="button"
+            class="language-toggle"
+            data-language-toggle
+          >
+            <span
+              class="language-toggle-flag"
+              data-language-toggle-flag
+              aria-hidden="true"
+            ></span>
+            <span class="language-toggle-label" data-language-toggle-label>EN</span>
+          </button>
+        </nav>
       </div>
     </header>
 
     <main>
       <section class="books-section about-section" aria-labelledby="about-heading">
-        <h1 id="about-heading">O mnie</h1>
-        <p>
-          Hej, nazywam się Radek Grabarek i na tej stronie pokazuję listę książek
-          jakie ostatnio czytałem, czytam lub planuję przeczytać. Bardzo lubię
-          książki, choć często brakuje mi na nie czasu. Ale tak chyba mają
-          wszystkie mole ksiażkowe, prawda?
+        <h1 id="about-heading" data-i18n="about.heading">O mnie</h1>
+        <p data-i18n="about.paragraph1">
+          Hej, nazywam się Radek Grabarek i na tej stronie pokazuję listę książek jakie
+          ostatnio czytałem, czytam lub planuję przeczytać. Bardzo lubię książki, choć
+          często brakuje mi na nie czasu. Ale tak chyba mają wszystkie mole ksiażkowe,
+          prawda?
         </p>
-        <p>
-          Dla relaksu wybieram science fiction – szczególnie historie osadzone w
-          kosmosie. Fascynują mnie astronomia, astronautyka i inżynieria kosmiczna,
-          więc sięgam też po książki popularnonaukowe w tych tematach. Z pasji do
-          kosmosu prowadzę też kanał YouTube
+        <p data-i18n="about.paragraph2" data-i18n-mode="html">
+          Dla relaksu wybieram science fiction – szczególnie historie osadzone w kosmosie.
+          Fascynują mnie astronomia, astronautyka i inżynieria kosmiczna, więc sięgam też
+          po książki popularnonaukowe w tych tematach. Z pasji do kosmosu prowadzę też
+          kanał YouTube
           <a href="https://www.youtube.com/@wnms" target="_blank" rel="noopener noreferrer"
             ><em>We Need More Space</em></a
-          >, gdzie opowiadam o misjach kosmicznych i dzielę się recenzjami
-          niektórych tytułów.
+          >, gdzie opowiadam o misjach kosmicznych i dzielę się recenzjami niektórych
+          tytułów.
         </p>
-        <p>
-          Od czasu do czasu sięgam również po książki o marketingu, biznesie online
-          czy rozwoju osobistym – wybieram jednak te rzetelne, praktyczne pozycje, a
-          nie “coacherskie” poradniki.
+        <p data-i18n="about.paragraph3">
+          Od czasu do czasu sięgam również po książki o marketingu, biznesie online czy
+          rozwoju osobistym – wybieram jednak te rzetelne, praktyczne pozycje, a nie
+          “coacherskie” poradniki.
         </p>
-        <p>
-          Jak widać jestem z tych, którzy czytają po kilka książek na raz, ale
-          zwykle jest to tylko jedna książka z danego gatunku.
+        <p data-i18n="about.paragraph4">
+          Jak widać jestem z tych, którzy czytają po kilka książek na raz, ale zwykle jest
+          to tylko jedna książka z danego gatunku.
         </p>
       </section>
     </main>
 
     <footer class="site-footer">
-      <p class="site-footer-text">Dzięki za odwiedziny!</p>
+      <p class="site-footer-text" data-i18n="footers.about">Dzięki za odwiedziny!</p>
     </footer>
+
+    <script src="../translations.js" defer></script>
   </body>
 </html>

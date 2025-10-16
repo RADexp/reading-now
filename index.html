@@ -14,11 +14,11 @@
     <link rel="icon" href="favicon.png" type="image/png" sizes="32x32" />
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
+  <body data-page="home">
     <header class="site-header">
       <div class="site-header-top">
         <div class="logo-container">
-          <a class="logo-link" href="./" aria-label="Strona główna Radek czyta">
+          <a class="logo-link" href="./" data-i18n-attrs="aria-label:common.logoLinkAria">
             <img
               src="radek-czyta.png"
               width="180"
@@ -26,52 +26,75 @@
               alt="Ilustracja logo Radek czyta"
               class="logo-image"
               loading="lazy"
+              data-i18n-attrs="alt:common.logoAlt"
             />
           </a>
           <div class="logo-text-group">
-            <a class="logo" href="./">Radek czyta</a>
-            <p class="tagline">
+            <a class="logo" href="./" data-i18n="common.logoText">Radek czyta</a>
+            <p class="tagline" data-i18n="common.tagline">
               Lista książek, które właśnie pochłaniam, czekają w kolejce lub już są na
               półce przeczytane.
             </p>
           </div>
         </div>
-        <a class="site-nav-link" href="o-mnie/">O mnie</a>
+        <nav class="site-nav">
+          <a class="site-nav-link" href="o-mnie/" data-i18n="navigation.about">O mnie</a>
+          <button
+            type="button"
+            class="language-toggle"
+            data-language-toggle
+          >
+            <span
+              class="language-toggle-flag"
+              data-language-toggle-flag
+              aria-hidden="true"
+            ></span>
+            <span class="language-toggle-label" data-language-toggle-label>EN</span>
+          </button>
+        </nav>
       </div>
     </header>
 
     <main>
-      <section class="status-message" id="status-message" role="status" aria-live="polite">
+      <section
+        class="status-message"
+        id="status-message"
+        role="status"
+        aria-live="polite"
+        data-i18n="home.status.loading"
+      >
         Ładuję dane z arkusza...
       </section>
 
       <section class="books-section" aria-labelledby="reading-now">
-        <h2 id="reading-now">Teraz czytam</h2>
+        <h2 id="reading-now" data-i18n="home.sections.reading">Teraz czytam</h2>
         <ul id="reading-list" class="book-list" aria-live="polite"></ul>
-        <p class="empty-message" data-for="reading-list" hidden>
+        <p class="empty-message" data-for="reading-list" hidden data-i18n="home.empty">
           Brak książek w tej sekcji.
         </p>
       </section>
 
       <section class="books-section" aria-labelledby="next-up">
-        <h2 id="next-up">Następne</h2>
+        <h2 id="next-up" data-i18n="home.sections.next">Następne</h2>
         <ul id="next-list" class="book-list" aria-live="polite"></ul>
-        <p class="empty-message" data-for="next-list" hidden>
+        <p class="empty-message" data-for="next-list" hidden data-i18n="home.empty">
           Brak książek w tej sekcji.
         </p>
       </section>
 
       <section class="books-section" aria-labelledby="finished">
-        <h2 id="finished">Przeczytane</h2>
+        <h2 id="finished" data-i18n="home.sections.finished">Przeczytane</h2>
         <ul id="finished-list" class="book-list" aria-live="polite"></ul>
-        <p class="empty-message" data-for="finished-list" hidden>
+        <p class="empty-message" data-for="finished-list" hidden data-i18n="home.empty">
           Brak książek w tej sekcji.
         </p>
       </section>
     </main>
 
     <footer class="site-footer">
-      <p class="site-footer-text">Aktualizowane automatycznie z Google Sheets.</p>
+      <p class="site-footer-text" data-i18n="footers.home">
+        Aktualizowane automatycznie z Google Sheets.
+      </p>
       <p
         class="site-footer-text"
         id="last-updated"
@@ -81,6 +104,7 @@
       ></p>
     </footer>
 
+    <script src="translations.js" defer></script>
     <script src="script.js" defer></script>
   </body>
 </html>
