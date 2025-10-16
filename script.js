@@ -14,6 +14,14 @@ const SHEET_COLUMN_INDEXES = Object.freeze({
   englishLink: 11, // kolumna L
 });
 
+const STATUS_KEYWORDS = Object.freeze({
+  reading: ["czytam", "czyt", "reading", "current"],
+  next: ["planuje", "plan", "nast", "next", "queue"],
+  finished: ["przeczyt", "skoń", "finished", "read"],
+});
+
+const I18N = window.I18N;
+
 const lists = {
   reading: document.getElementById("reading-list"),
   next: document.getElementById("next-list"),
@@ -29,30 +37,73 @@ const emptyMessages = {
 const statusElement = document.getElementById("status-message");
 const lastUpdatedElement = document.getElementById("last-updated");
 
-function setStatusMessage(text, type = "info") {
+const state = {
+  books: [],
+  status: { key: null, params: {}, type: "info" },
+  lastUpdated: null,
+};
+
+function applyStatus() {
   if (!statusElement) {
     return;
   }
-  if (!text) {
+  const { key, params, type } = state.status;
+  if (!key) {
     statusElement.hidden = true;
+    statusElement.textContent = "";
+    statusElement.classList.remove("is-error");
+    return;
+  }
+  const message = I18N.translate(key, params);
+  if (!message) {
+    statusElement.hidden = true;
+    statusElement.textContent = "";
+    statusElement.classList.remove("is-error");
     return;
   }
   statusElement.hidden = false;
-  statusElement.textContent = text;
+  statusElement.textContent = message;
   statusElement.classList.toggle("is-error", type === "error");
 }
 
-function setLastUpdated(text) {
+function showStatus(key, params = {}, type = "info") {
+  state.status = { key, params, type };
+  applyStatus();
+}
+
+function clearStatus() {
+  state.status = { key: null, params: {}, type: "info" };
+  applyStatus();
+}
+
+function applyLastUpdated() {
   if (!lastUpdatedElement) {
     return;
   }
-  if (!text) {
+  if (!state.lastUpdated) {
+    lastUpdatedElement.textContent = "";
+    lastUpdatedElement.hidden = true;
+    return;
+  }
+  const formatted = I18N.formatDateTime(state.lastUpdated);
+  if (!formatted) {
+    lastUpdatedElement.textContent = "";
+    lastUpdatedElement.hidden = true;
+    return;
+  }
+  const label = I18N.translateDynamic("statusUpdated", { date: formatted });
+  if (!label) {
     lastUpdatedElement.textContent = "";
     lastUpdatedElement.hidden = true;
     return;
   }
   lastUpdatedElement.hidden = false;
-  lastUpdatedElement.textContent = text;
+  lastUpdatedElement.textContent = label;
+}
+
+function setLastUpdated(date) {
+  state.lastUpdated = date instanceof Date ? date : null;
+  applyLastUpdated();
 }
 
 function parseCSV(text) {
@@ -76,7 +127,6 @@ function parseCSV(text) {
       current = "";
     } else if ((char === "\n" || char === "\r") && !insideQuotes) {
       if (char === "\r" && text[i + 1] === "\n") {
-        // Skip the next \n in Windows-style line endings
         i += 1;
       }
       row.push(current);
@@ -117,14 +167,10 @@ function bucketForStatus(status) {
   if (!normalized) {
     return null;
   }
-  if (normalized.includes("czytam")) {
-    return "reading";
-  }
-  if (normalized.includes("planuje")) {
-    return "next";
-  }
-  if (normalized.includes("przeczyt")) {
-    return "finished";
+  for (const [bucket, keywords] of Object.entries(STATUS_KEYWORDS)) {
+    if (keywords.some((keyword) => normalized.includes(keyword))) {
+      return bucket;
+    }
   }
   return null;
 }
@@ -154,7 +200,7 @@ function createRatingElement(ratingValue) {
     fractionDigits = 2;
   }
 
-  const localizedRating = normalizedRating.toLocaleString("pl-PL", {
+  const localizedRating = I18N.formatNumber(normalizedRating, {
     minimumFractionDigits: fractionDigits,
     maximumFractionDigits: fractionDigits,
   });
@@ -162,11 +208,15 @@ function createRatingElement(ratingValue) {
   const ratingElement = document.createElement("div");
   ratingElement.className = "book-rating";
   ratingElement.setAttribute("role", "img");
-  ratingElement.setAttribute(
-    "aria-label",
-    `Ocena: ${localizedRating} na 5`
-  );
-  ratingElement.setAttribute("title", `Ocena: ${localizedRating} / 5`);
+
+  const ariaLabel = I18N.translateDynamic("ratingAria", { value: localizedRating });
+  const title = I18N.translateDynamic("ratingTitle", { value: localizedRating });
+  if (ariaLabel) {
+    ratingElement.setAttribute("aria-label", ariaLabel);
+  }
+  if (title) {
+    ratingElement.setAttribute("title", title);
+  }
 
   for (let i = 1; i <= 5; i += 1) {
     const star = document.createElement("span");
@@ -294,24 +344,27 @@ function getLanguageDisplay(languageValue) {
   }
 
   let flag = "";
-  let readable = displayText;
+  let code = null;
 
   if (normalized.includes("pol")) {
     flag = "🇵🇱";
-    readable = "polski";
+    code = "pl";
   } else if (normalized.includes("ang") || normalized.includes("eng")) {
     flag = "🇬🇧";
-    readable = "angielski";
+    code = "en";
   } else if (normalized.includes("hiszp") || normalized.includes("span")) {
     flag = "🇪🇸";
-    readable = "hiszpański";
+    code = "es";
   } else if (normalized.includes("niem") || normalized.includes("ger")) {
     flag = "🇩🇪";
-    readable = "niemiecki";
+    code = "de";
   } else if (normalized.includes("franc") || normalized.includes("fr")) {
     flag = "🇫🇷";
-    readable = "francuski";
+    code = "fr";
   }
+
+  const languageNames = I18N.translate("languageNames") || {};
+  const readable = (code && languageNames[code]) || displayText;
 
   return {
     flag,
@@ -347,16 +400,22 @@ function createConsumptionElement(formatValue, languageValue) {
 
     formatSpan.append(iconSpan, labelSpan);
     container.appendChild(formatSpan);
-    ariaParts.push(`format: ${formatInfo.label}`);
+
+    const ariaText = I18N.translateDynamic("consumptionFormat", { label: formatInfo.label });
+    if (ariaText) {
+      ariaParts.push(ariaText);
+    }
   }
 
   if (languageInfo) {
     const languageSpan = document.createElement("span");
     languageSpan.className = "book-meta-language";
-    languageSpan.setAttribute(
-      "aria-label",
-      `Język: ${languageInfo.label}`
-    );
+
+    const labelText = languageInfo.flag ? languageInfo.label : languageInfo.originalLabel;
+    const ariaLabel = I18N.translateDynamic("languageAria", { label: labelText });
+    if (ariaLabel) {
+      languageSpan.setAttribute("aria-label", ariaLabel);
+    }
 
     if (languageInfo.flag) {
       const flagSpan = document.createElement("span");
@@ -368,17 +427,23 @@ function createConsumptionElement(formatValue, languageValue) {
 
     const labelSpan = document.createElement("span");
     labelSpan.className = "book-meta-language-label";
-    labelSpan.textContent = languageInfo.flag
-      ? languageInfo.label
-      : languageInfo.originalLabel;
+    labelSpan.textContent = labelText;
     languageSpan.appendChild(labelSpan);
 
     container.appendChild(languageSpan);
-    ariaParts.push(`język: ${languageInfo.label}`);
+
+    const ariaText = I18N.translateDynamic("consumptionLanguage", { label: labelText });
+    if (ariaText) {
+      ariaParts.push(ariaText);
+    }
   }
 
   if (ariaParts.length > 0) {
-    container.setAttribute("aria-label", `Sposób lektury – ${ariaParts.join(", ")}`);
+    const details = ariaParts.join(", ");
+    const combined = I18N.translateDynamic("consumptionLabel", { details });
+    if (combined) {
+      container.setAttribute("aria-label", combined);
+    }
   }
 
   return container;
@@ -400,6 +465,7 @@ function getCellValue(row, index) {
 
 function createBookCard(
   {
+    bucket,
     title,
     author,
     genre,
@@ -415,8 +481,9 @@ function createBookCard(
   const item = document.createElement("li");
   item.className = "book-card";
 
-  if (typeof variant === "string") {
-    const trimmedVariant = variant.trim();
+  const effectiveVariant = variant || bucket;
+  if (typeof effectiveVariant === "string") {
+    const trimmedVariant = effectiveVariant.trim();
     if (trimmedVariant) {
       item.classList.add(`book-card--${trimmedVariant}`);
     }
@@ -431,7 +498,14 @@ function createBookCard(
 
     const coverImage = document.createElement("img");
     coverImage.src = coverUrl;
-    coverImage.alt = title ? `Okładka: ${title}` : "Okładka książki";
+    const fallbackTitle = I18N.getPlaceholder("untitled") || "";
+    const bookTitle = title || fallbackTitle || "";
+    const coverAlt = title
+      ? I18N.translateDynamic("coverAlt", { title: bookTitle })
+      : I18N.translateDynamic("coverAltFallback");
+    if (coverAlt) {
+      coverImage.alt = coverAlt;
+    }
     coverImage.loading = "lazy";
 
     coverWrapper.appendChild(coverImage);
@@ -443,7 +517,8 @@ function createBookCard(
 
   const titleElement = document.createElement("h3");
   titleElement.className = "book-title";
-  const bookTitle = title || "(bez tytułu)";
+  const fallbackTitle = I18N.getPlaceholder("untitled") || "";
+  const bookTitle = title || fallbackTitle || "";
   const preferredLink = getPreferredBookLink({
     languageValue: language,
     polishLink,
@@ -457,11 +532,16 @@ function createBookCard(
     titleLink.target = "_blank";
     titleLink.rel = "noopener noreferrer";
     titleLink.textContent = bookTitle;
-    titleLink.setAttribute(
-      "aria-label",
-      `${bookTitle} – otwiera się w nowej karcie`
-    );
-    titleLink.title = `${bookTitle} (otwiera się w nowej karcie)`;
+
+    const ariaLabel = I18N.translateDynamic("linkAria", { title: bookTitle });
+    const titleText = I18N.translateDynamic("linkTitle", { title: bookTitle });
+    if (ariaLabel) {
+      titleLink.setAttribute("aria-label", ariaLabel);
+    }
+    if (titleText) {
+      titleLink.title = titleText;
+    }
+
     titleElement.appendChild(titleLink);
   } else {
     titleElement.textContent = bookTitle;
@@ -506,6 +586,43 @@ function createBookCard(
   return item;
 }
 
+function clearLists() {
+  Object.values(lists).forEach((list) => {
+    if (list) {
+      list.replaceChildren();
+    }
+  });
+}
+
+function renderBooks() {
+  clearLists();
+  const grouped = {
+    reading: [],
+    next: [],
+    finished: [],
+  };
+
+  state.books.forEach((book) => {
+    if (grouped[book.bucket]) {
+      grouped[book.bucket].push(book);
+    }
+  });
+
+  Object.entries(grouped).forEach(([bucket, items]) => {
+    const list = lists[bucket];
+    if (!list || items.length === 0) {
+      return;
+    }
+    const fragment = document.createDocumentFragment();
+    items.forEach((item) => {
+      fragment.appendChild(createBookCard(item, { variant: bucket }));
+    });
+    list.appendChild(fragment);
+  });
+
+  ["reading", "next", "finished"].forEach((key) => toggleEmptyMessage(key));
+}
+
 function toggleEmptyMessage(listKey) {
   const list = lists[listKey];
   const message = emptyMessages[listKey];
@@ -521,27 +638,28 @@ function toggleEmptyMessage(listKey) {
 
 async function loadBooks() {
   try {
-    setStatusMessage("Ładuję dane z arkusza...");
-    setLastUpdated("");
+    showStatus("home.status.loading");
+    setLastUpdated(null);
     const response = await fetch(SHEET_CSV_URL, { cache: "no-store" });
     if (!response.ok) {
-      throw new Error(`Nie udało się pobrać danych (status ${response.status}).`);
+      const error = new Error("HTTP_ERROR");
+      error.status = response.status;
+      throw error;
     }
+
     const csvText = await response.text();
-    const rows = parseCSV(csvText).filter((row) =>
-      row.some((cell) => cell && cell.trim() !== "")
-    );
+    const rows = parseCSV(csvText).filter((row) => row.some((cell) => cell && cell.trim() !== ""));
 
     if (rows.length === 0) {
-      throw new Error("Arkusz nie zawiera żadnych danych.");
+      const error = new Error("EMPTY_SHEET");
+      error.code = "EMPTY_SHEET";
+      throw error;
     }
 
-    // Zakładamy, że pierwszy wiersz to nagłówki.
     const dataRows = rows.slice(1);
-
     const columnIndexes = SHEET_COLUMN_INDEXES;
 
-    let itemsLoaded = 0;
+    const items = [];
 
     dataRows.forEach((row) => {
       const title = getCellValue(row, columnIndexes.title);
@@ -560,42 +678,57 @@ async function loadBooks() {
         return;
       }
 
-      const card = createBookCard(
-        {
-          title,
-          author,
-          genre,
-          rating,
-          coverUrl,
-          polishLink,
-          englishLink,
-          format,
-          language,
-        },
-        { variant: bucket }
-      );
-      lists[bucket].appendChild(card);
-      itemsLoaded += 1;
+      items.push({
+        bucket,
+        title,
+        author,
+        genre,
+        rating,
+        coverUrl,
+        polishLink,
+        englishLink,
+        format,
+        language,
+      });
     });
 
-    ["reading", "next", "finished"].forEach((key) => toggleEmptyMessage(key));
+    state.books = items;
+    renderBooks();
 
-    if (itemsLoaded > 0) {
-      setStatusMessage("");
-      setLastUpdated(`Zaktualizowano: ${new Date().toLocaleString("pl-PL")}.`);
+    if (items.length > 0) {
+      clearStatus();
+      setLastUpdated(new Date());
     } else {
-      setStatusMessage("Brak danych do wyświetlenia.");
-      setLastUpdated("");
+      showStatus("home.status.noData");
+      setLastUpdated(null);
     }
   } catch (error) {
     console.error(error);
-    setStatusMessage(
-      "Nie udało się pobrać danych z arkusza. Spróbuj odświeżyć stronę później.",
-      "error"
-    );
-    setLastUpdated("");
-    ["reading", "next", "finished"].forEach((key) => toggleEmptyMessage(key));
+    state.books = [];
+    renderBooks();
+    setLastUpdated(null);
+    if (error && error.status) {
+      showStatus("dynamic.statusHttpError", { status: error.status }, "error");
+    } else if (error && error.code === "EMPTY_SHEET") {
+      showStatus("home.status.sheetEmpty", {}, "error");
+    } else {
+      showStatus("home.status.fetchError", {}, "error");
+    }
   }
 }
 
-loadBooks();
+if (I18N) {
+  I18N.onReady(() => {
+    applyStatus();
+    applyLastUpdated();
+    loadBooks();
+  });
+
+  I18N.onChange(() => {
+    applyStatus();
+    applyLastUpdated();
+    renderBooks();
+  });
+} else {
+  loadBooks();
+}

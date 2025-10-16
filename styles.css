@@ -77,9 +77,55 @@ body {
   flex-wrap: wrap;
 }
 
-.site-header-top .site-nav-link {
+.site-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
   margin-left: auto;
-  align-self: flex-start;
+  flex-shrink: 0;
+}
+
+.site-nav .site-nav-link {
+  margin-left: 0;
+}
+
+.language-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgba(81, 69, 205, 0.18);
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--accent-color);
+  font-weight: 600;
+  font-size: 0.9rem;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(81, 69, 205, 0.12);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  font-family: inherit;
+}
+
+.language-toggle:hover,
+.language-toggle:focus {
+  background: rgba(81, 69, 205, 0.12);
+  box-shadow: 0 12px 28px rgba(81, 69, 205, 0.18);
+  transform: translateY(-1px);
+}
+
+.language-toggle:focus {
+  outline: 2px solid rgba(81, 69, 205, 0.35);
+  outline-offset: 2px;
+}
+
+.language-toggle-flag {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.language-toggle-label {
+  line-height: 1;
 }
 
 .logo-container {
