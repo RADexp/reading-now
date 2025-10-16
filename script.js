@@ -167,12 +167,27 @@ function bucketForStatus(status) {
   if (!normalized) {
     return null;
   }
+
+  let bestMatchBucket = null;
+  let bestMatchLength = 0;
+
   for (const [bucket, keywords] of Object.entries(STATUS_KEYWORDS)) {
-    if (keywords.some((keyword) => normalized.includes(keyword))) {
-      return bucket;
-    }
+    keywords.forEach((keyword) => {
+      if (!keyword) {
+        return;
+      }
+
+      if (normalized.includes(keyword)) {
+        const keywordLength = keyword.length;
+        if (keywordLength > bestMatchLength) {
+          bestMatchBucket = bucket;
+          bestMatchLength = keywordLength;
+        }
+      }
+    });
   }
-  return null;
+
+  return bestMatchBucket;
 }
 
 function createRatingElement(ratingValue) {
