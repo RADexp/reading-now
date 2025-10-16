@@ -128,7 +128,7 @@
         paragraph1:
           "Hi, I'm Radek Grabarek and on this page I share a list of books I've recently read, am reading or plan to pick up. I love books, even if I often run out of time for them. But that's what bookworms are like, right?",
         paragraph2:
-          'To unwind I reach for science fiction—especially stories set in space. I'm fascinated by astronomy, astronautics and space engineering, so I also read popular science books on those topics. Driven by this passion I run the YouTube channel <a href="https://www.youtube.com/@wnms" target="_blank" rel="noopener noreferrer"><em>We Need More Space</em></a>, where I talk about space missions and share reviews of selected titles.',
+          `To unwind I reach for science fiction—especially stories set in space. I'm fascinated by astronomy, astronautics and space engineering, so I also read popular science books on those topics. Driven by this passion I run the YouTube channel <a href="https://www.youtube.com/@wnms" target="_blank" rel="noopener noreferrer"><em>We Need More Space</em></a>, where I talk about space missions and share reviews of selected titles.`,
         paragraph3:
           "From time to time I also reach for books about marketing, online business or personal development—I go for reliable, practical titles rather than fluffy \"coach\" guides.",
         paragraph4:
