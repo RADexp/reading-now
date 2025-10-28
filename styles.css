@@ -566,17 +566,16 @@ main {
 
 body.page-insta {
   padding: 1.25rem 1rem 1.75rem;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .page-insta .insta-header {
-  width: min(320px, 100%);
+  width: min(480px, 100%);
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 0.55rem;
+  gap: clamp(0.75rem, 4vw, 1.5rem);
   margin-bottom: 1.1rem;
-  text-align: center;
+  text-align: left;
 }
 
 .insta-header-logo-link {
@@ -587,28 +586,37 @@ body.page-insta {
   background: rgba(255, 255, 255, 0.85);
   box-shadow: 0 12px 32px rgba(51, 51, 102, 0.18);
   padding: 0.35rem;
+  flex-shrink: 0;
 }
 
 .insta-header-logo {
   display: block;
-  width: clamp(80px, 35vw, 110px);
+  width: clamp(80px, 22vw, 110px);
   height: auto;
 }
 
 .insta-header-title {
-  font-size: clamp(1.8rem, 7vw, 2.3rem);
+  font-size: clamp(1.8rem, 6vw, 2.3rem);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--accent-color);
   margin: 0;
+  display: inline-flex;
+  flex-direction: column;
+  line-height: 1;
+  gap: 0.25rem;
+}
+
+.insta-header-title span {
+  display: block;
 }
 
 .page-insta main {
-  width: min(320px, 100%);
+  width: min(480px, 100%);
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.85rem;
 }
 
