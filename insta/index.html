@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Radek czyta — Insta</title>
+    <link rel="icon" type="image/png" href="../favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body class="page-insta" data-page="insta">
+    <header class="insta-header">
+      <a class="insta-header-logo-link" href="../" aria-label="Powrót do strony głównej">
+        <img
+          src="../radek-czyta.png"
+          width="180"
+          height="180"
+          alt="Ilustracja logo Radek czyta"
+          class="insta-header-logo"
+          loading="lazy"
+        />
+      </a>
+      <p class="insta-header-title">Radek Czyta</p>
+    </header>
+
+    <main>
+      <section class="insta-books" aria-labelledby="insta-reading">
+        <h1 id="insta-reading" class="visually-hidden" data-i18n="home.sections.reading">
+          Teraz czytam
+        </h1>
+        <ul id="reading-list" class="insta-book-grid" aria-live="polite"></ul>
+        <p class="empty-message" data-for="reading-list" hidden data-i18n="home.empty">
+          Brak książek w tej sekcji.
+        </p>
+      </section>
+    </main>
+
+    <script src="../translations.js" defer></script>
+    <script src="../script.js" defer></script>
+  </body>
+</html>
