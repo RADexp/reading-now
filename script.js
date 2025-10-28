@@ -21,6 +21,11 @@ const STATUS_KEYWORDS = Object.freeze({
 });
 
 const I18N = window.I18N;
+const pageVariant =
+  (typeof document !== "undefined" && document.body && document.body.dataset
+    ? document.body.dataset.page
+    : null) || "home";
+const isInstaPage = pageVariant === "insta";
 
 const lists = {
   reading: document.getElementById("reading-list"),
@@ -478,6 +483,117 @@ function getCellValue(row, index) {
   return value.toString().trim();
 }
 
+function createInstaBadge(label, modifier, { icon, ariaLabel } = {}) {
+  if (!label) {
+    return null;
+  }
+
+  const text = label.toString().trim();
+  if (!text) {
+    return null;
+  }
+
+  const badge = document.createElement("span");
+  badge.className = "insta-book-badge";
+
+  if (modifier) {
+    badge.classList.add(`insta-book-badge--${modifier}`);
+  }
+
+  if (ariaLabel) {
+    badge.setAttribute("aria-label", ariaLabel);
+  }
+
+  if (icon) {
+    const iconSpan = document.createElement("span");
+    iconSpan.className = "insta-book-badge-icon";
+    iconSpan.textContent = icon;
+    iconSpan.setAttribute("aria-hidden", "true");
+    badge.appendChild(iconSpan);
+  }
+
+  const labelSpan = document.createElement("span");
+  labelSpan.className = "insta-book-badge-label";
+  labelSpan.textContent = text;
+  badge.appendChild(labelSpan);
+
+  return badge;
+}
+
+function createInstaBookCard(
+  { title, coverUrl, format, language, genre },
+  { variant } = {}
+) {
+  const item = document.createElement("li");
+  item.className = "insta-book-card";
+
+  if (variant) {
+    item.classList.add(`insta-book-card--${variant}`);
+  }
+
+  if (coverUrl) {
+    const coverWrapper = document.createElement("div");
+    coverWrapper.className = "insta-book-cover";
+
+    const coverImage = document.createElement("img");
+    coverImage.src = coverUrl;
+    const fallbackTitle = I18N.getPlaceholder("untitled") || "";
+    const bookTitle = title || fallbackTitle || "";
+    const coverAlt = title
+      ? I18N.translateDynamic("coverAlt", { title: bookTitle })
+      : I18N.translateDynamic("coverAltFallback");
+    if (coverAlt) {
+      coverImage.alt = coverAlt;
+    }
+    coverImage.loading = "lazy";
+    coverWrapper.appendChild(coverImage);
+    item.appendChild(coverWrapper);
+  }
+
+  const metaElement = document.createElement("div");
+  metaElement.className = "insta-book-meta";
+
+  const formatInfo = getFormatDisplay(format);
+  if (formatInfo) {
+    const ariaText = I18N.translateDynamic("consumptionFormat", { label: formatInfo.label });
+    const badge = createInstaBadge(formatInfo.label, "format", {
+      icon: formatInfo.icon,
+      ariaLabel: ariaText,
+    });
+    if (badge) {
+      metaElement.appendChild(badge);
+    }
+  }
+
+  const languageInfo = getLanguageDisplay(language);
+  if (languageInfo) {
+    const labelText = languageInfo.flag ? languageInfo.label : languageInfo.originalLabel;
+    const ariaText = I18N.translateDynamic("languageAria", { label: labelText });
+    const badge = createInstaBadge(labelText, "language", {
+      icon: languageInfo.flag,
+      ariaLabel: ariaText,
+    });
+    if (badge) {
+      metaElement.appendChild(badge);
+    }
+  }
+
+  const genreBadge = createInstaBadge(genre, "genre");
+  if (genreBadge) {
+    metaElement.appendChild(genreBadge);
+  }
+
+  if (metaElement.childElementCount > 0) {
+    item.appendChild(metaElement);
+  }
+
+  if (!coverUrl && metaElement.childElementCount === 0) {
+    return null;
+  }
+
+  return item;
+}
+
 function createBookCard(
   {
     bucket,
@@ -630,7 +746,12 @@ function renderBooks() {
     }
     const fragment = document.createDocumentFragment();
     items.forEach((item) => {
-      fragment.appendChild(createBookCard(item, { variant: bucket }));
+      const card = isInstaPage
+        ? createInstaBookCard(item, { variant: bucket })
+        : createBookCard(item, { variant: bucket });
+      if (card) {
+        fragment.appendChild(card);
+      }
     });
     list.appendChild(fragment);
   });
