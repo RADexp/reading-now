@@ -46,6 +46,12 @@
             "Nie udało się pobrać danych z arkusza. Spróbuj odświeżyć stronę później.",
         },
       },
+      insta: {
+        themeToggle: {
+          ariaDark: "Przełącz na ciemny motyw",
+          ariaLight: "Przełącz na jasny motyw",
+        },
+      },
       about: {
         heading: "O mnie",
         paragraph1:
@@ -121,6 +127,12 @@
           noData: "No data to display.",
           fetchError:
             "Couldn't fetch data from the sheet. Please refresh the page later.",
+        },
+      },
+      insta: {
+        themeToggle: {
+          ariaDark: "Switch to dark theme",
+          ariaLight: "Switch to light theme",
         },
       },
       about: {

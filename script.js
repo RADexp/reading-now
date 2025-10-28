@@ -27,6 +27,131 @@ const pageVariant =
     : null) || "home";
 const isInstaPage = pageVariant === "insta";
 
+const INSTA_THEME_STORAGE_KEY = "radek-insta-theme";
+const INSTA_THEMES = Object.freeze({
+  DARK: "dark",
+  LIGHT: "light",
+});
+
+function initInstaThemeToggle() {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  const body = document.body;
+  const toggle = document.querySelector("[data-theme-toggle]");
+
+  if (!body || !toggle) {
+    return;
+  }
+
+  const iconElement = toggle.querySelector("[data-theme-toggle-icon]");
+  const { dataset = {} } = toggle;
+
+  const fallbackAriaLabels = {
+    [INSTA_THEMES.DARK]: dataset.ariaDark || "Switch to dark theme",
+    [INSTA_THEMES.LIGHT]: dataset.ariaLight || "Switch to light theme",
+  };
+
+  function getStoredTheme() {
+    try {
+      const stored = window.localStorage.getItem(INSTA_THEME_STORAGE_KEY);
+      if (stored === INSTA_THEMES.DARK || stored === INSTA_THEMES.LIGHT) {
+        return stored;
+      }
+      return null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function storeTheme(theme) {
+    try {
+      window.localStorage.setItem(INSTA_THEME_STORAGE_KEY, theme);
+    } catch (error) {
+      // ignore storage errors
+    }
+  }
+
+  function resolveAriaLabel(theme) {
+    if (!I18N || typeof I18N.translate !== "function") {
+      return fallbackAriaLabels[theme];
+    }
+    const key =
+      theme === INSTA_THEMES.DARK
+        ? "insta.themeToggle.ariaDark"
+        : "insta.themeToggle.ariaLight";
+    return I18N.translate(key) || fallbackAriaLabels[theme];
+  }
+
+  let currentTheme = body.classList.contains("theme-light")
+    ? INSTA_THEMES.LIGHT
+    : INSTA_THEMES.DARK;
+
+  function updateTogglePresentation() {
+    const targetTheme =
+      currentTheme === INSTA_THEMES.DARK
+        ? INSTA_THEMES.LIGHT
+        : INSTA_THEMES.DARK;
+    const icon = targetTheme === INSTA_THEMES.DARK ? "🌙" : "☀️";
+    if (iconElement) {
+      iconElement.textContent = icon;
+    }
+    const ariaLabel = resolveAriaLabel(targetTheme);
+    if (ariaLabel) {
+      toggle.setAttribute("aria-label", ariaLabel);
+      toggle.setAttribute("title", ariaLabel);
+    }
+    toggle.setAttribute("data-target-theme", targetTheme);
+    toggle.setAttribute(
+      "aria-pressed",
+      currentTheme === INSTA_THEMES.DARK ? "true" : "false"
+    );
+  }
+
+  function applyTheme(theme, { skipStore = false } = {}) {
+    const nextTheme =
+      theme === INSTA_THEMES.LIGHT ? INSTA_THEMES.LIGHT : INSTA_THEMES.DARK;
+    currentTheme = nextTheme;
+    body.classList.toggle("theme-dark", nextTheme === INSTA_THEMES.DARK);
+    body.classList.toggle("theme-light", nextTheme === INSTA_THEMES.LIGHT);
+    if (!skipStore) {
+      storeTheme(nextTheme);
+    }
+    updateTogglePresentation();
+  }
+
+  const storedTheme = getStoredTheme();
+  applyTheme(storedTheme || currentTheme, { skipStore: true });
+
+  toggle.addEventListener("click", () => {
+    const targetTheme =
+      currentTheme === INSTA_THEMES.DARK
+        ? INSTA_THEMES.LIGHT
+        : INSTA_THEMES.DARK;
+    applyTheme(targetTheme);
+  });
+
+  function handleLanguageUpdate() {
+    updateTogglePresentation();
+  }
+
+  if (I18N && typeof I18N.onReady === "function") {
+    I18N.onReady(() => {
+      handleLanguageUpdate();
+      if (typeof I18N.onChange === "function") {
+        I18N.onChange(handleLanguageUpdate);
+      }
+    });
+  } else if (I18N && typeof I18N.onChange === "function") {
+    I18N.onChange(handleLanguageUpdate);
+  }
+}
+
+if (isInstaPage) {
+  initInstaThemeToggle();
+}
+
 const lists = {
   reading: document.getElementById("reading-list"),
   next: document.getElementById("next-list"),

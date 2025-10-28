@@ -13,22 +13,35 @@
     />
     <link rel="stylesheet" href="../styles.css" />
   </head>
-  <body class="page-insta" data-page="insta">
+  <body class="page-insta theme-dark" data-page="insta">
     <header class="insta-header">
-      <a class="insta-header-logo-link" href="../" aria-label="Powrót do strony głównej">
-        <img
-          src="../radek-czyta.png"
-          width="180"
-          height="180"
-          alt="Ilustracja logo Radek czyta"
-          class="insta-header-logo"
-          loading="lazy"
-        />
-      </a>
-      <p class="insta-header-title">
-        <span>Radek</span>
-        <span>Czyta</span>
-      </p>
+      <div class="insta-header-primary">
+        <a class="insta-header-logo-link" href="../" aria-label="Powrót do strony głównej">
+          <img
+            src="../radek-czyta.png"
+            width="180"
+            height="180"
+            alt="Ilustracja logo Radek czyta"
+            class="insta-header-logo"
+            loading="lazy"
+          />
+        </a>
+        <p class="insta-header-title">
+          <span>Radek</span>
+          <span>Czyta</span>
+        </p>
+      </div>
+      <button
+        type="button"
+        class="insta-theme-toggle"
+        data-theme-toggle
+        data-aria-light="Przełącz na jasny motyw"
+        data-aria-dark="Przełącz na ciemny motyw"
+        aria-label="Przełącz na jasny motyw"
+        title="Przełącz na jasny motyw"
+      >
+        <span class="insta-theme-toggle-icon" data-theme-toggle-icon aria-hidden="true">☀️</span>
+      </button>
     </header>
 
     <main>
