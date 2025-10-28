@@ -386,9 +386,17 @@ function getLanguageDisplay(languageValue) {
   const languageNames = I18N.translate("languageNames") || {};
   const readable = (code && languageNames[code]) || displayText;
 
+  let shortLabel = readable;
+  if (code === "pl") {
+    shortLabel = "Pol";
+  } else if (code === "en") {
+    shortLabel = "Ang";
+  }
+
   return {
     flag,
     label: readable,
+    shortLabel,
     originalLabel: displayText,
   };
 }
@@ -567,8 +575,10 @@ function createInstaBookCard(
 
   const languageInfo = getLanguageDisplay(language);
   if (languageInfo) {
-    const labelText = languageInfo.flag ? languageInfo.label : languageInfo.originalLabel;
-    const ariaText = I18N.translateDynamic("languageAria", { label: labelText });
+    const labelText = languageInfo.flag
+      ? languageInfo.shortLabel || languageInfo.label
+      : languageInfo.originalLabel;
+    const ariaText = I18N.translateDynamic("languageAria", { label: languageInfo.label });
     const badge = createInstaBadge(labelText, "language", {
       icon: languageInfo.flag,
       ariaLabel: ariaText,
