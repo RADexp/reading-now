@@ -577,7 +577,7 @@ body.page-insta {
   --insta-dark-text: #efeaff;
   --insta-dark-muted: rgba(223, 219, 255, 0.75);
   --insta-dark-card-shadow: 0 20px 42px rgba(8, 7, 30, 0.5);
-  padding: 1.25rem 1rem 1.75rem;
+  padding: clamp(2.5rem, 6vw, 4rem);
   align-items: flex-start;
   background: var(--insta-light-bg);
   color: var(--text-color);
@@ -748,11 +748,12 @@ body.page-insta.theme-light .insta-theme-toggle:focus {
 }
 
 .page-insta main {
-  width: min(520px, 100%);
+  width: min(360px, 85%);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.85rem;
+  gap: 1.4rem;
+  margin-inline: auto;
 }
 
 .insta-books {
@@ -764,14 +765,14 @@ body.page-insta.theme-light .insta-theme-toggle:focus {
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
-  gap: 0.6rem;
+  grid-template-columns: 1fr;
+  gap: 1rem;
 }
 
 .insta-book-card {
   background: rgba(255, 255, 255, 0.8);
-  border-radius: 18px;
-  padding: 0.5rem;
+  border-radius: 16px;
+  padding: 0.45rem 0.4rem;
   display: flex;
   flex-direction: column;
   align-items: center;
