@@ -334,11 +334,26 @@ main {
   overflow: hidden;
   background: rgba(81, 69, 205, 0.08);
   box-shadow: 0 10px 20px rgba(81, 69, 205, 0.15);
+  position: relative;
 }
 
 .book-card--reading .book-cover {
   width: clamp(140px, 45vw, 180px);
   box-shadow: 0 16px 32px rgba(81, 69, 205, 0.2);
+}
+
+.book-cover-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 0.35rem 0.55rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #6d5dfc, #8f7cff);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  line-height: 1;
+  box-shadow: 0 6px 16px rgba(81, 69, 205, 0.35);
 }
 
 .book-cover img {

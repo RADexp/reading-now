@@ -12,6 +12,7 @@ const SHEET_COLUMN_INDEXES = Object.freeze({
   coverUrl: 9, // kolumna J
   polishLink: 10, // kolumna K
   englishLink: 11, // kolumna L
+  progress: 12, // kolumna M
 });
 
 const STATUS_KEYWORDS = Object.freeze({
@@ -616,6 +617,24 @@ function getCellValue(row, index) {
   return value.toString().trim();
 }
 
+function parseProgress(value) {
+  if (value === undefined || value === null) {
+    return null;
+  }
+
+  const numeric = Number.parseInt(value, 10);
+  if (!Number.isFinite(numeric)) {
+    return null;
+  }
+
+  const clamped = Math.max(0, Math.min(100, numeric));
+  if (!Number.isInteger(clamped)) {
+    return null;
+  }
+
+  return clamped;
+}
+
 function createInstaBadge(label, modifier, { icon, ariaLabel } = {}) {
   if (!label) {
     return null;
@@ -741,6 +760,7 @@ function createBookCard(
     englishLink,
     format,
     language,
+    progress,
   },
   { variant } = {}
 ) {
@@ -773,6 +793,22 @@ function createBookCard(
       coverImage.alt = coverAlt;
     }
     coverImage.loading = "lazy";
+
+    if (variant === "reading") {
+      const progressValue = parseProgress(progress);
+      if (progressValue !== null) {
+        const badge = document.createElement("span");
+        badge.className = "book-cover-badge";
+        badge.textContent = `${progressValue}%`;
+
+        const ariaLabel = I18N.translateDynamic("progressLabel", { value: progressValue });
+        if (ariaLabel) {
+          badge.setAttribute("aria-label", ariaLabel);
+        }
+
+        coverWrapper.appendChild(badge);
+      }
+    }
 
     coverWrapper.appendChild(coverImage);
     bodyElement.appendChild(coverWrapper);
@@ -943,6 +979,7 @@ async function loadBooks() {
       const language = getCellValue(row, columnIndexes.language);
       const polishLink = getCellValue(row, columnIndexes.polishLink);
       const englishLink = getCellValue(row, columnIndexes.englishLink);
+      const progress = parseProgress(getCellValue(row, columnIndexes.progress));
 
       const bucket = bucketForStatus(status);
       if (!bucket || !lists[bucket]) {
@@ -960,6 +997,7 @@ async function loadBooks() {
         englishLink,
         format,
         language,
+        progress,
       });
     });
 
