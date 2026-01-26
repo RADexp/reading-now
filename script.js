@@ -199,7 +199,7 @@ function initReadingCarousel() {
     step: 0,
   };
 
-  function setButtonState() {
+  function setButtonState({ shouldHideControls = false } = {}) {
     const isAtStart = carouselState.currentIndex <= 0;
     const isAtEnd = carouselState.currentIndex >= carouselState.maxIndex;
 
@@ -207,6 +207,15 @@ function initReadingCarousel() {
     prevButton.setAttribute("aria-disabled", isAtStart.toString());
     nextButton.disabled = isAtEnd;
     nextButton.setAttribute("aria-disabled", isAtEnd.toString());
+
+    if (shouldHideControls) {
+      prevButton.hidden = true;
+      nextButton.hidden = true;
+      return;
+    }
+
+    prevButton.hidden = isAtStart;
+    nextButton.hidden = isAtEnd;
   }
 
   function clampIndex(index) {
@@ -224,7 +233,7 @@ function initReadingCarousel() {
       carouselState.maxIndex = 0;
       carouselState.step = 0;
       list.style.transform = "translateX(0px)";
-      setButtonState();
+      setButtonState({ shouldHideControls });
       return;
     }
 

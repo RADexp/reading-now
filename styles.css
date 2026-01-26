@@ -263,22 +263,22 @@ main {
   position: relative;
 }
 
-.reading-section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
 .reading-section-header h2 {
   margin-bottom: 0;
 }
 
 .reading-carousel-controls {
-  display: inline-flex;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: space-between;
+  padding: 0 0.25rem;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 2;
 }
 
 .carousel-button {
@@ -295,6 +295,7 @@ main {
   cursor: pointer;
   transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease,
     box-shadow 0.2s ease;
+  pointer-events: auto;
 }
 
 .carousel-button:hover,
@@ -320,6 +321,7 @@ main {
 
 .reading-carousel {
   --reading-carousel-gap: 1rem;
+  position: relative;
   margin-top: 1.2rem;
   overflow: hidden;
 }
