@@ -196,18 +196,28 @@ function initReadingCarousel() {
     currentIndex: 0,
     maxIndex: 0,
     step: 0,
+    controlsHidden: false,
   };
 
   function setButtonState() {
     const isAtStart = carouselState.currentIndex <= 0;
     const isAtEnd = carouselState.currentIndex >= carouselState.maxIndex;
+    const shouldHideControls = carouselState.controlsHidden;
 
-    prevButton.hidden = isAtStart;
+    prevButton.hidden = shouldHideControls || isAtStart;
     prevButton.disabled = isAtStart;
     prevButton.setAttribute("aria-disabled", isAtStart.toString());
-    nextButton.hidden = isAtEnd;
+    prevButton.setAttribute(
+      "aria-hidden",
+      (shouldHideControls || isAtStart).toString()
+    );
+    nextButton.hidden = shouldHideControls || isAtEnd;
     nextButton.disabled = isAtEnd;
     nextButton.setAttribute("aria-disabled", isAtEnd.toString());
+    nextButton.setAttribute(
+      "aria-hidden",
+      (shouldHideControls || isAtEnd).toString()
+    );
   }
 
   function clampIndex(index) {
@@ -218,8 +228,7 @@ function initReadingCarousel() {
     const items = Array.from(list.children);
     const shouldHideControls = items.length <= READING_CAROUSEL_VISIBLE_COUNT;
 
-    prevButton.hidden = shouldHideControls;
-    nextButton.hidden = shouldHideControls;
+    carouselState.controlsHidden = shouldHideControls;
 
     if (shouldHideControls || items.length === 0) {
       carouselState.currentIndex = 0;
