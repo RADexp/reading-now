@@ -165,6 +165,8 @@ const emptyMessages = {
   finished: document.querySelector('[data-for="finished-list"]'),
 };
 
+const READING_CAROUSEL_VISIBLE_COUNT = 3;
+
 const statusElement = document.getElementById("status-message");
 const lastUpdatedElement = document.getElementById("last-updated");
 
@@ -173,6 +175,98 @@ const state = {
   status: { key: null, params: {}, type: "info" },
   lastUpdated: null,
 };
+
+let updateReadingCarousel = null;
+
+function initReadingCarousel() {
+  if (isInstaPage) {
+    return null;
+  }
+
+  const carousel = document.querySelector("[data-reading-carousel]");
+  const list = document.getElementById("reading-list");
+  const prevButton = document.querySelector("[data-reading-carousel-prev]");
+  const nextButton = document.querySelector("[data-reading-carousel-next]");
+
+  if (!carousel || !list || !prevButton || !nextButton) {
+    return null;
+  }
+
+  const carouselState = {
+    currentIndex: 0,
+    maxIndex: 0,
+    step: 0,
+  };
+
+  function setButtonState() {
+    const isAtStart = carouselState.currentIndex <= 0;
+    const isAtEnd = carouselState.currentIndex >= carouselState.maxIndex;
+
+    prevButton.hidden = isAtStart;
+    prevButton.disabled = isAtStart;
+    prevButton.setAttribute("aria-disabled", isAtStart.toString());
+    nextButton.hidden = isAtEnd;
+    nextButton.disabled = isAtEnd;
+    nextButton.setAttribute("aria-disabled", isAtEnd.toString());
+  }
+
+  function clampIndex(index) {
+    return Math.max(0, Math.min(carouselState.maxIndex, index));
+  }
+
+  function updateCarousel({ reset = false } = {}) {
+    const items = Array.from(list.children);
+    const shouldHideControls = items.length <= READING_CAROUSEL_VISIBLE_COUNT;
+
+    prevButton.hidden = shouldHideControls;
+    nextButton.hidden = shouldHideControls;
+
+    if (shouldHideControls || items.length === 0) {
+      carouselState.currentIndex = 0;
+      carouselState.maxIndex = 0;
+      carouselState.step = 0;
+      list.style.transform = "translateX(0px)";
+      setButtonState();
+      return;
+    }
+
+    const firstItem = items[0];
+    const firstRect = firstItem.getBoundingClientRect();
+    const listStyles = window.getComputedStyle(list);
+    const gapValue = Number.parseFloat(listStyles.columnGap || listStyles.gap || 0);
+
+    carouselState.step = firstRect.width + (Number.isFinite(gapValue) ? gapValue : 0);
+    carouselState.maxIndex = Math.max(0, items.length - READING_CAROUSEL_VISIBLE_COUNT);
+
+    if (reset) {
+      carouselState.currentIndex = 0;
+    } else {
+      carouselState.currentIndex = clampIndex(carouselState.currentIndex);
+    }
+
+    const offset = carouselState.currentIndex * carouselState.step;
+    list.style.transform = `translateX(-${offset}px)`;
+    setButtonState();
+  }
+
+  function handlePrevClick() {
+    carouselState.currentIndex = clampIndex(carouselState.currentIndex - 1);
+    updateCarousel();
+  }
+
+  function handleNextClick() {
+    carouselState.currentIndex = clampIndex(carouselState.currentIndex + 1);
+    updateCarousel();
+  }
+
+  prevButton.addEventListener("click", handlePrevClick);
+  nextButton.addEventListener("click", handleNextClick);
+  window.addEventListener("resize", () => updateCarousel());
+
+  updateCarousel({ reset: true });
+
+  return updateCarousel;
+}
 
 function applyStatus() {
   if (!statusElement) {
@@ -928,7 +1022,13 @@ function renderBooks() {
   });
 
   ["reading", "next", "finished"].forEach((key) => toggleEmptyMessage(key));
+
+  if (typeof updateReadingCarousel === "function") {
+    updateReadingCarousel({ reset: true });
+  }
 }
+
+updateReadingCarousel = initReadingCarousel();
 
 function toggleEmptyMessage(listKey) {
   const list = lists[listKey];
