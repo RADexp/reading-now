@@ -66,9 +66,35 @@
         Ładuję dane z arkusza...
       </section>
 
-      <section class="books-section" aria-labelledby="reading-now">
-        <h2 id="reading-now" data-i18n="home.sections.reading">Teraz czytam</h2>
-        <ul id="reading-list" class="book-list" aria-live="polite"></ul>
+      <section class="books-section books-section--reading" aria-labelledby="reading-now">
+        <div class="reading-section-header">
+          <h2 id="reading-now" data-i18n="home.sections.reading">Teraz czytam</h2>
+          <div class="reading-carousel-controls" data-reading-carousel-controls>
+            <button
+              type="button"
+              class="carousel-button"
+              data-reading-carousel-prev
+              aria-label="Poprzednie książki"
+              title="Poprzednie książki"
+              data-i18n-attrs="aria-label:home.carousel.prev;title:home.carousel.prev"
+            >
+              ←
+            </button>
+            <button
+              type="button"
+              class="carousel-button"
+              data-reading-carousel-next
+              aria-label="Następne książki"
+              title="Następne książki"
+              data-i18n-attrs="aria-label:home.carousel.next;title:home.carousel.next"
+            >
+              →
+            </button>
+          </div>
+        </div>
+        <div class="reading-carousel" data-reading-carousel>
+          <ul id="reading-list" class="book-list reading-carousel-list" aria-live="polite"></ul>
+        </div>
         <p class="empty-message" data-for="reading-list" hidden data-i18n="home.empty">
           Brak książek w tej sekcji.
         </p>

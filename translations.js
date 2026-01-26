@@ -37,6 +37,10 @@
           next: "Następne",
           finished: "Przeczytane",
         },
+        carousel: {
+          prev: "Poprzednie książki",
+          next: "Następne książki",
+        },
         empty: "Brak książek w tej sekcji.",
         status: {
           loading: "Ładuję dane z arkusza...",
@@ -120,6 +124,10 @@
           reading: "Currently reading",
           next: "Up next",
           finished: "Finished",
+        },
+        carousel: {
+          prev: "Previous books",
+          next: "Next books",
         },
         empty: "No books in this section.",
         status: {
