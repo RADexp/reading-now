@@ -69,10 +69,12 @@
       <section class="books-section books-section--reading" aria-labelledby="reading-now">
         <div class="reading-section-header">
           <h2 id="reading-now" data-i18n="home.sections.reading">Teraz czytam</h2>
+        </div>
+        <div class="reading-carousel" data-reading-carousel>
           <div class="reading-carousel-controls" data-reading-carousel-controls>
             <button
               type="button"
-              class="carousel-button"
+              class="carousel-button carousel-button--prev"
               data-reading-carousel-prev
               aria-label="Poprzednie książki"
               title="Poprzednie książki"
@@ -82,7 +84,7 @@
             </button>
             <button
               type="button"
-              class="carousel-button"
+              class="carousel-button carousel-button--next"
               data-reading-carousel-next
               aria-label="Następne książki"
               title="Następne książki"
@@ -91,8 +93,6 @@
               →
             </button>
           </div>
-        </div>
-        <div class="reading-carousel" data-reading-carousel>
           <ul id="reading-list" class="book-list reading-carousel-list" aria-live="polite"></ul>
         </div>
         <p class="empty-message" data-for="reading-list" hidden data-i18n="home.empty">
