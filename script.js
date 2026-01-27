@@ -13,6 +13,7 @@ const SHEET_COLUMN_INDEXES = Object.freeze({
   polishLink: 10, // kolumna K
   englishLink: 11, // kolumna L
   progress: 12, // kolumna M
+  review: 13, // kolumna N
 });
 
 const STATUS_KEYWORDS = Object.freeze({
@@ -392,6 +393,23 @@ function normalizeText(value) {
 
 function normalizeStatus(value) {
   return normalizeText(value);
+}
+
+function slugify(...parts) {
+  const combined = parts
+    .map((part) => normalizeText(part))
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+
+  if (!combined) {
+    return "";
+  }
+
+  return combined
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .replace(/--+/g, "-");
 }
 
 function bucketForStatus(status) {
@@ -862,6 +880,7 @@ function createBookCard(
     format,
     language,
     progress,
+    reviewUrl,
   },
   { variant } = {}
 ) {
@@ -983,6 +1002,25 @@ function createBookCard(
     contentElement.appendChild(ratingElement);
   }
 
+  if (bucket === "finished" && reviewUrl) {
+    const reviewLabel = I18N.translate("home.reviewLink") || "Przeczytaj recenzję";
+    const reviewLink = document.createElement("a");
+    reviewLink.className = "book-review-link";
+    reviewLink.href = reviewUrl;
+    reviewLink.textContent = reviewLabel;
+
+    const ariaLabel = I18N.translateDynamic("reviewLinkAria", { title: bookTitle });
+    const titleText = I18N.translateDynamic("reviewLinkTitle", { title: bookTitle });
+    if (ariaLabel) {
+      reviewLink.setAttribute("aria-label", ariaLabel);
+    }
+    if (titleText) {
+      reviewLink.title = titleText;
+    }
+
+    contentElement.appendChild(reviewLink);
+  }
+
   bodyElement.appendChild(contentElement);
   item.appendChild(bodyElement);
 
@@ -1087,11 +1125,15 @@ async function loadBooks() {
       const polishLink = getCellValue(row, columnIndexes.polishLink);
       const englishLink = getCellValue(row, columnIndexes.englishLink);
       const progress = parseProgress(getCellValue(row, columnIndexes.progress));
+      const review = getCellValue(row, columnIndexes.review);
 
       const bucket = bucketForStatus(status);
       if (!bucket || !lists[bucket]) {
         return;
       }
+
+      const reviewSlug = review ? slugify(title, author) : "";
+      const reviewUrl = reviewSlug ? `/recenzje/${reviewSlug}.html` : null;
 
       items.push({
         bucket,
@@ -1105,6 +1147,7 @@ async function loadBooks() {
         format,
         language,
         progress,
+        reviewUrl,
       });
     });
 

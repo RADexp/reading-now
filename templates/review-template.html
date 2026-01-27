@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{Tytuł}} – {{Autor}} | recenzja</title>
+    <meta
+      name="description"
+      content="{{Tytuł}} {{Autor}} – recenzja, opinia, wrażenia z lektury. Słowa kluczowe: recenzja, opinia."
+    />
+    <link rel="icon" type="image/png" href="../favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" href="../favicon.png" type="image/png" sizes="32x32" />
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body class="page-review" data-page="review">
+    <header class="site-header">
+      <div class="site-header-top">
+        <div class="logo-container">
+          <a class="logo-link" href="../" aria-label="Strona główna Radek czyta">
+            <img
+              src="../radek-czyta.png"
+              width="180"
+              height="180"
+              alt="Ilustracja logo Radek czyta"
+              class="logo-image"
+              loading="lazy"
+            />
+          </a>
+          <div class="logo-text-group">
+            <a class="logo" href="../">Radek czyta</a>
+            <p class="tagline">
+              Lista książek, które właśnie pochłaniam, czekają w kolejce lub już są na półce
+              przeczytane.
+            </p>
+          </div>
+        </div>
+        <nav class="site-nav">
+          <a class="site-nav-link" href="../o-mnie/">O mnie</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="review-main">
+      <section class="review-hero">
+        <div class="book-card book-card--finished book-card--review">
+          <div class="book-card-body">
+            <div class="book-cover">
+              <img src="{{Okładka}}" alt="Okładka: {{Tytuł}}" loading="lazy" />
+            </div>
+            <div class="book-card-content">
+              <h1 class="book-title">{{Tytuł}}</h1>
+              <p class="book-meta">
+                <span class="book-meta-author">{{Autor}}</span>
+                <span class="book-meta-consumption">
+                  <span class="book-meta-consumption-format">
+                    <span class="book-meta-consumption-icon" aria-hidden="true">📕</span>
+                    <span class="book-meta-consumption-label">papier</span>
+                  </span>
+                  <span class="book-meta-language" aria-label="Język: polski">
+                    <span class="book-meta-language-flag" aria-hidden="true">🇵🇱</span>
+                    <span class="book-meta-language-label">polski</span>
+                  </span>
+                </span>
+                <span class="book-meta-genre">{{Gatunek}}</span>
+              </p>
+              <div class="book-rating" aria-label="Ocena: 4.5 na 5">
+                <span class="rating-star" aria-hidden="true">
+                  <span class="rating-star-base">☆</span>
+                  <span class="rating-star-fill" style="--star-fill: 100%">★</span>
+                </span>
+                <span class="rating-star" aria-hidden="true">
+                  <span class="rating-star-base">☆</span>
+                  <span class="rating-star-fill" style="--star-fill: 100%">★</span>
+                </span>
+                <span class="rating-star" aria-hidden="true">
+                  <span class="rating-star-base">☆</span>
+                  <span class="rating-star-fill" style="--star-fill: 100%">★</span>
+                </span>
+                <span class="rating-star" aria-hidden="true">
+                  <span class="rating-star-base">☆</span>
+                  <span class="rating-star-fill" style="--star-fill: 100%">★</span>
+                </span>
+                <span class="rating-star" aria-hidden="true">
+                  <span class="rating-star-base">☆</span>
+                  <span class="rating-star-fill" style="--star-fill: 50%">★</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="review-content">
+        <div class="review-text">
+          <p>
+            {{Treść recenzji. Markdown jest obsługiwany: <strong>pogrubienie</strong>,
+            <em>kursywa</em>, <code>code</code> i listy.}}
+          </p>
+        </div>
+        <div class="review-video">
+          <div class="review-video-frame">
+            <iframe
+              src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+              title="YouTube video"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen
+              loading="lazy"
+            ></iframe>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p class="site-footer-text">Aktualizowane automatycznie z Google Sheets.</p>
+    </footer>
+  </body>
+</html>

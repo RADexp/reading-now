@@ -37,6 +37,7 @@
           next: "Następne",
           finished: "Przeczytane",
         },
+        reviewLink: "Przeczytaj recenzję",
         carousel: {
           prev: "Poprzednie książki",
           next: "Następne książki",
@@ -91,6 +92,8 @@
         consumptionLanguage: ({ label }) => `język: ${label}`,
         languageAria: ({ label }) => `Język: ${label}`,
         progressLabel: ({ value }) => `Progres czytania: ${value}%`,
+        reviewLinkAria: ({ title }) => `Przeczytaj recenzję książki ${title}`,
+        reviewLinkTitle: ({ title }) => `Przeczytaj recenzję książki ${title}`,
         statusUpdated: ({ date }) => `Zaktualizowano: ${date}.`,
         statusHttpError: ({ status }) => `Nie udało się pobrać danych (status ${status}).`,
       },
@@ -125,6 +128,7 @@
           next: "Up next",
           finished: "Finished",
         },
+        reviewLink: "Read the review",
         carousel: {
           prev: "Previous books",
           next: "Next books",
@@ -179,6 +183,8 @@
         consumptionLanguage: ({ label }) => `language: ${label}`,
         languageAria: ({ label }) => `Language: ${label}`,
         progressLabel: ({ value }) => `Reading progress: ${value}%`,
+        reviewLinkAria: ({ title }) => `Read the review of ${title}`,
+        reviewLinkTitle: ({ title }) => `Read the review of ${title}`,
         statusUpdated: ({ date }) => `Updated: ${date}.`,
         statusHttpError: ({ status }) => `Failed to fetch data (status ${status}).`,
       },
