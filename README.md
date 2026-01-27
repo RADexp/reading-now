@@ -63,3 +63,4 @@ Slug jest generowany automatycznie z `Title + Author`, np.:
 ```
 Dune Frank Herbert -> dune-frank-herbert
 ```
+# reading-now -> radekreads.pl 
