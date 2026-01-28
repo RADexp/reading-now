@@ -24,6 +24,27 @@
 4. Po chwili zobaczysz informację, ile stron zostało wygenerowanych.
    Gotowe pliki znajdziesz w folderze `recenzje/`.
 
+### Nowy tryb: recenzje z plików `.md` (folder `Wsad/`)
+
+Jeśli chcesz dodać recenzję jako prosty plik tekstowy:
+
+1. Utwórz plik `.md` w folderze `Wsad/`, np. `Wsad/moja-recenzja.md`.
+2. Wklej treść w takim formacie:
+   ```text
+   Title: Tytuł książki
+   Author: Imię i nazwisko
+   Treść recenzji...
+   ```
+3. Uzupełnij dane tej książki w Google Sheet (okładka, ocena, linki itp.).
+4. Uruchom generator:
+   ```bash
+   node scripts/generate-reviews.mjs
+   ```
+5. Wygenerowany plik znajdziesz w `recenzje/<slug>.html`.
+
+Jeśli dopasowanie tytułu i autora do arkusza będzie niejednoznaczne,
+generator wypisze komunikat i pominie taką recenzję.
+
 Opcjonalnie możesz podać inny adres CSV z arkusza:
 
 ```bash

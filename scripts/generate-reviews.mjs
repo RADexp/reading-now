@@ -21,6 +21,7 @@ const SHEET_COLUMN_INDEXES = Object.freeze({
 });
 
 const REVIEW_OUTPUT_DIR = "recenzje";
+const REVIEW_INPUT_DIR = "Wsad";
 const REVIEW_KEYWORDS = "recenzja, opinia";
 
 function parseCSV(text) {
@@ -89,6 +90,106 @@ function normalizeText(value) {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
+function normalizeForMatch(value) {
+  if (!value) {
+    return "";
+  }
+  return normalizeText(value)
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getTitleVariants(value) {
+  const variants = new Set();
+  if (!value) {
+    return [];
+  }
+  const trimmed = value.toString().trim();
+  if (!trimmed) {
+    return [];
+  }
+  const separators = [":", " - ", " – ", " — "];
+  let base = trimmed;
+  separators.forEach((separator) => {
+    if (base.includes(separator)) {
+      base = base.split(separator)[0];
+    }
+  });
+  [trimmed, base].forEach((candidate) => {
+    const normalized = normalizeForMatch(candidate);
+    if (normalized) {
+      variants.add(normalized);
+    }
+  });
+  return Array.from(variants);
+}
+
+function getAuthorVariants(value) {
+  const variants = new Set();
+  const normalized = normalizeForMatch(value);
+  if (!normalized) {
+    return [];
+  }
+  variants.add(normalized);
+  const tokens = normalized.split(" ").filter(Boolean);
+  if (tokens.length >= 2) {
+    variants.add(`${tokens[0]} ${tokens[tokens.length - 1]}`);
+  }
+  return Array.from(variants);
+}
+
+function calculateLevenshteinDistance(a, b) {
+  if (a === b) {
+    return 0;
+  }
+  const aLength = a.length;
+  const bLength = b.length;
+  if (aLength === 0) {
+    return bLength;
+  }
+  if (bLength === 0) {
+    return aLength;
+  }
+
+  const matrix = Array.from({ length: aLength + 1 }, () => new Array(bLength + 1).fill(0));
+
+  for (let i = 0; i <= aLength; i += 1) {
+    matrix[i][0] = i;
+  }
+  for (let j = 0; j <= bLength; j += 1) {
+    matrix[0][j] = j;
+  }
+
+  for (let i = 1; i <= aLength; i += 1) {
+    for (let j = 1; j <= bLength; j += 1) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1,
+        matrix[i][j - 1] + 1,
+        matrix[i - 1][j - 1] + cost
+      );
+    }
+  }
+
+  return matrix[aLength][bLength];
+}
+
+function calculateSimilarity(a, b) {
+  if (!a || !b) {
+    return 0;
+  }
+  if (a === b) {
+    return 1;
+  }
+  const maxLength = Math.max(a.length, b.length);
+  if (maxLength === 0) {
+    return 0;
+  }
+  const distance = calculateLevenshteinDistance(a, b);
+  return 1 - distance / maxLength;
+}
+
 function slugify(...parts) {
   const combined = parts
     .map((part) => normalizeText(part))
@@ -104,6 +205,119 @@ function slugify(...parts) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .replace(/--+/g, "-");
+}
+
+function parseMarkdownReview(text, fileName) {
+  const lines = text.split(/\r?\n/);
+  let title = "";
+  let author = "";
+  let lastHeaderIndex = -1;
+
+  lines.forEach((line, index) => {
+    if (!title) {
+      const titleMatch = line.match(/^title\s*:\s*(.+)$/i);
+      if (titleMatch) {
+        title = titleMatch[1].trim();
+        lastHeaderIndex = Math.max(lastHeaderIndex, index);
+      }
+    }
+    if (!author) {
+      const authorMatch = line.match(/^author\s*:\s*(.+)$/i);
+      if (authorMatch) {
+        author = authorMatch[1].trim();
+        lastHeaderIndex = Math.max(lastHeaderIndex, index);
+      }
+    }
+  });
+
+  if (!title || !author) {
+    console.warn(
+      `Plik ${fileName}: brak wymaganych pól Title lub Author. Pomijam generowanie.`
+    );
+    return null;
+  }
+
+  const body = lines.slice(lastHeaderIndex + 1).join("\n").trim();
+
+  if (!body) {
+    console.warn(`Plik ${fileName}: brak treści recenzji. Pomijam generowanie.`);
+    return null;
+  }
+
+  return { title, author, body };
+}
+
+function findBestSheetMatch(reviewEntry, dataRows) {
+  const MIN_TITLE_SCORE = 0.7;
+  const MIN_AUTHOR_SCORE = 0.6;
+  const MIN_COMBINED_SCORE = 0.7;
+
+  const titleVariants = getTitleVariants(reviewEntry.title);
+  const authorVariants = getAuthorVariants(reviewEntry.author);
+
+  let bestMatch = null;
+  let secondMatch = null;
+
+  dataRows.forEach((row, index) => {
+    const rowTitle = getCellValue(row, SHEET_COLUMN_INDEXES.title);
+    const rowAuthor = getCellValue(row, SHEET_COLUMN_INDEXES.author);
+
+    if (!rowTitle || !rowAuthor) {
+      return;
+    }
+
+    const rowTitleVariants = getTitleVariants(rowTitle);
+    const rowAuthorVariants = getAuthorVariants(rowAuthor);
+
+    const titleScore = Math.max(
+      ...titleVariants.flatMap((variant) =>
+        rowTitleVariants.map((rowVariant) => calculateSimilarity(variant, rowVariant))
+      ),
+      0
+    );
+    const authorScore = Math.max(
+      ...authorVariants.flatMap((variant) =>
+        rowAuthorVariants.map((rowVariant) => calculateSimilarity(variant, rowVariant))
+      ),
+      0
+    );
+    const combinedScore = titleScore * 0.6 + authorScore * 0.4;
+
+    if (
+      titleScore < MIN_TITLE_SCORE ||
+      authorScore < MIN_AUTHOR_SCORE ||
+      combinedScore < MIN_COMBINED_SCORE
+    ) {
+      return;
+    }
+
+    const candidate = {
+      index,
+      row,
+      title: rowTitle,
+      author: rowAuthor,
+      titleScore,
+      authorScore,
+      combinedScore,
+    };
+
+    if (!bestMatch || combinedScore > bestMatch.combinedScore) {
+      secondMatch = bestMatch;
+      bestMatch = candidate;
+    } else if (!secondMatch || combinedScore > secondMatch.combinedScore) {
+      secondMatch = candidate;
+    }
+  });
+
+  if (!bestMatch) {
+    return { match: null, reason: "missing" };
+  }
+
+  if (secondMatch && bestMatch.combinedScore - secondMatch.combinedScore < 0.05) {
+    return { match: null, reason: "ambiguous", bestMatch, secondMatch };
+  }
+
+  return { match: bestMatch, reason: null };
 }
 
 function sanitizeExternalLink(value) {
@@ -592,13 +806,63 @@ async function generateReviews() {
   const dataRows = rows.slice(1);
   const outputRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
   const outputDir = path.join(outputRoot, REVIEW_OUTPUT_DIR);
+  const inputDir = path.join(outputRoot, REVIEW_INPUT_DIR);
 
   await fs.mkdir(outputDir, { recursive: true });
 
   const generated = [];
   const writeTasks = [];
+  const mdMatches = new Map();
+
+  let inputFiles = [];
+  try {
+    const entries = await fs.readdir(inputDir, { withFileTypes: true });
+    inputFiles = entries
+      .filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith(".md"))
+      .map((entry) => entry.name);
+  } catch (error) {
+    if (error.code !== "ENOENT") {
+      throw error;
+    }
+  }
+
+  if (inputFiles.length > 0) {
+    for (const fileName of inputFiles) {
+      const filePath = path.join(inputDir, fileName);
+      const content = await fs.readFile(filePath, "utf-8");
+      const parsed = parseMarkdownReview(content, `${REVIEW_INPUT_DIR}/${fileName}`);
+      if (!parsed) {
+        continue;
+      }
+
+      const matchResult = findBestSheetMatch(parsed, dataRows);
+      if (!matchResult.match) {
+        if (matchResult.reason === "ambiguous") {
+          console.warn(
+            `Nie można jednoznacznie dopasować pliku ${fileName} (${parsed.title} — ${parsed.author}).` +
+              ` Najlepsze dopasowania: "${matchResult.bestMatch.title}" / "${matchResult.secondMatch.title}". Pomijam.`
+          );
+        } else {
+          console.warn(
+            `Nie znaleziono dopasowania w arkuszu dla pliku ${fileName} (${parsed.title} — ${parsed.author}). Pomijam.`
+          );
+        }
+        continue;
+      }
+
+      mdMatches.set(matchResult.match.index, {
+        ...parsed,
+        fileName,
+        row: matchResult.match.row,
+      });
+    }
+  }
 
   dataRows.forEach((row, index) => {
+    if (mdMatches.has(index)) {
+      return;
+    }
+
     const title = getCellValue(row, SHEET_COLUMN_INDEXES.title);
     const author = getCellValue(row, SHEET_COLUMN_INDEXES.author);
     const genre = getCellValue(row, SHEET_COLUMN_INDEXES.genre);
@@ -632,6 +896,59 @@ async function generateReviews() {
     });
 
     const { cleanedText, embedHtml } = extractYouTubeEmbed(reviewText);
+    const reviewHtml = renderMarkdown(cleanedText);
+
+    const html = renderReviewPage({
+      title,
+      author,
+      genre,
+      rating,
+      coverUrl,
+      format,
+      language,
+      reviewHtml,
+      embedHtml,
+      reviewSlug,
+      preferredLink,
+    });
+
+    const outputFile = path.join(outputDir, `${reviewSlug}.html`);
+    generated.push({ slug: reviewSlug, outputFile });
+    writeTasks.push(fs.writeFile(outputFile, html));
+  });
+
+  mdMatches.forEach((match) => {
+    const row = match.row;
+    const title = getCellValue(row, SHEET_COLUMN_INDEXES.title);
+    const author = getCellValue(row, SHEET_COLUMN_INDEXES.author);
+    const genre = getCellValue(row, SHEET_COLUMN_INDEXES.genre);
+    const coverUrl = getCellValue(row, SHEET_COLUMN_INDEXES.coverUrl);
+    const rating = getCellValue(row, SHEET_COLUMN_INDEXES.rating);
+    const format = getCellValue(row, SHEET_COLUMN_INDEXES.format);
+    const language = getCellValue(row, SHEET_COLUMN_INDEXES.language);
+    const polishLink = getCellValue(row, SHEET_COLUMN_INDEXES.polishLink);
+    const englishLink = getCellValue(row, SHEET_COLUMN_INDEXES.englishLink);
+
+    if (!title || !author) {
+      console.warn(
+        `Plik ${match.fileName}: w arkuszu brakuje tytułu lub autora. Pomijam generowanie.`
+      );
+      return;
+    }
+
+    const reviewSlug = slugify(title, author);
+    if (!reviewSlug) {
+      console.warn(`Plik ${match.fileName}: nie udało się utworzyć slugu. Pomijam.`);
+      return;
+    }
+
+    const preferredLink = getPreferredBookLink({
+      languageValue: language,
+      polishLink,
+      englishLink,
+    });
+
+    const { cleanedText, embedHtml } = extractYouTubeEmbed(match.body);
     const reviewHtml = renderMarkdown(cleanedText);
 
     const html = renderReviewPage({
