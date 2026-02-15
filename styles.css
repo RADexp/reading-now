@@ -187,6 +187,7 @@ body {
 
 main {
   width: min(960px, 100%);
+  min-width: 0;
   display: grid;
   gap: clamp(1.5rem, 3vw, 2rem);
 }
@@ -208,6 +209,7 @@ main {
 }
 
 .books-section {
+  min-width: 0;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 18px;
@@ -323,6 +325,7 @@ main {
   --reading-carousel-gap: 1rem;
   position: relative;
   margin-top: 1.2rem;
+  min-width: 0;
   overflow: hidden;
 }
 

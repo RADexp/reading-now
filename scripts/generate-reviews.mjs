@@ -972,6 +972,13 @@ async function generateReviews() {
 
   await Promise.all(writeTasks);
 
+  const manifestPath = path.join(outputDir, "reviews-manifest.json");
+  const uniqueSlugs = Array.from(new Set(generated.map(({ slug }) => slug))).sort();
+  await fs.writeFile(
+    manifestPath,
+    `${JSON.stringify({ generatedAt: new Date().toISOString(), slugs: uniqueSlugs }, null, 2)}\n`
+  );
+
   console.log(`Generated ${generated.length} review page(s) in ${REVIEW_OUTPUT_DIR}/`);
   generated.forEach(({ slug, outputFile }) => {
     console.log(`- ${slug}: ${path.relative(outputRoot, outputFile)}`);
