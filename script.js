@@ -1,5 +1,6 @@
 const SHEET_CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vQjjjgtBTUiSTuLiJQ_rP4m7uYffLK_uvkF2Dt1_NildFjEHUcilVUysEQRBH-iWJC1dA-Rtpx8tVn8/pub?gid=2028690260&single=true&output=csv";
+const REVIEW_MANIFEST_URL = "/recenzje/reviews-manifest.json";
 
 const SHEET_COLUMN_INDEXES = Object.freeze({
   title: 2, // kolumna C
@@ -175,6 +176,7 @@ const state = {
   books: [],
   status: { key: null, params: {}, type: "info" },
   lastUpdated: null,
+  reviewSlugs: new Set(),
 };
 
 let updateReadingCarousel = null;
@@ -1092,6 +1094,7 @@ async function loadBooks() {
   try {
     showStatus("home.status.loading");
     setLastUpdated(null);
+    await loadReviewManifest();
     const response = await fetch(SHEET_CSV_URL, { cache: "no-store" });
     if (!response.ok) {
       const error = new Error("HTTP_ERROR");
@@ -1132,7 +1135,8 @@ async function loadBooks() {
         return;
       }
 
-      const reviewSlug = review ? slugify(title, author) : "";
+      const reviewSlug = slugify(title, author);
+      const hasReview = Boolean(review) || state.reviewSlugs.has(reviewSlug);
       const reviewUrl = reviewSlug ? `/recenzje/${reviewSlug}.html` : null;
 
       items.push({
@@ -1147,7 +1151,7 @@ async function loadBooks() {
         format,
         language,
         progress,
-        reviewUrl,
+        reviewUrl: hasReview ? reviewUrl : null,
       });
     });
 
@@ -1173,6 +1177,30 @@ async function loadBooks() {
     } else {
       showStatus("home.status.fetchError", {}, "error");
     }
+  }
+}
+
+async function loadReviewManifest() {
+  try {
+    const response = await fetch(REVIEW_MANIFEST_URL, { cache: "no-store" });
+    if (!response.ok) {
+      state.reviewSlugs = new Set();
+      return;
+    }
+
+    const payload = await response.json();
+    if (!payload || !Array.isArray(payload.slugs)) {
+      state.reviewSlugs = new Set();
+      return;
+    }
+
+    state.reviewSlugs = new Set(
+      payload.slugs
+        .map((slug) => (typeof slug === "string" ? slug.trim() : ""))
+        .filter(Boolean)
+    );
+  } catch (error) {
+    state.reviewSlugs = new Set();
   }
 }
 
