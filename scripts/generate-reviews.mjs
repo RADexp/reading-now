@@ -487,6 +487,11 @@ function renderMarkdown(text) {
   let paragraphLines = [];
   let listItems = [];
 
+  function flushHeading(level, content) {
+    const normalizedLevel = Math.max(1, Math.min(6, level));
+    blocks.push(`<h${normalizedLevel}>${applyInlineMarkdown(content)}</h${normalizedLevel}>`);
+  }
+
   function flushParagraph() {
     if (paragraphLines.length === 0) {
       return;
@@ -518,6 +523,14 @@ function renderMarkdown(text) {
     if (trimmed.startsWith("- ")) {
       flushParagraph();
       listItems.push(trimmed.slice(2));
+      return;
+    }
+
+    const headingMatch = trimmed.match(/^(#{1,6})\s+(.+)$/);
+    if (headingMatch) {
+      flushParagraph();
+      flushList();
+      flushHeading(headingMatch[1].length, headingMatch[2]);
       return;
     }
 
